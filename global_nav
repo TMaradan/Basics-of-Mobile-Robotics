@@ -1,0 +1,51 @@
+def global_nav():
+    global goal,position_x,position_y,speed_left,speed_right,direction,state,dt
+    
+    #constantes
+    v_max=200#mm/s
+    #v_min=20
+    Diameter=94#mm
+    goal_margin=30#mm
+    threshold=0.3
+    
+    #just to tune by test, names wrong
+    Kp_d=0.1
+    #CHECK GOAL
+    if math.sqrt((position_x-path[goal,0])**2+(position_y-path[goal,1])**2)<goal_margin:
+        if goal+1>=np.size(path[:,0]):
+            print('arrived')
+            state=2
+            return 0,0#works only in a function
+        else:
+            goal=goal+1
+            print('goal : ',goal)
+    
+    #MOTORS
+    obj_angle=np.arctan2(path[goal,1]-position_y,path[goal,0]-position_x)
+    
+    if abs(obj_angle-direction)>threshold:
+        vitesse=0#-Kd_v*abs(obj_angle-direction[present])+Kp_v*abs(50-vitesse[present])#vitesse[present]
+        if vitesse<0:vitesse=0##v_min
+    else:
+        vitesse=50#-Ki_v*abs(50-vitesse[present])
+    
+    #derror=obj_dir(*position[present,:],*path[goal,:])+obj_dir(*position[present-1,:],*path[goal,:])-direction[present]-direction[present-1]
+    speed_left=-(Kp_d*(obj_angle-direction))*Diameter#vitesse[present+1]    #0.2*(speed_l[present]+speed_l[present-1])/2    #-Kd_d*derror
+    speed_right=(Kp_d*(obj_angle-direction))*Diameter#vitesse[present+1]    #0.2*(speed_r[present]+speed_r[present-1])/2+    #-Kd_d*derror
+    #bounded speed for turn
+    if speed_right<-v_max:speed_right=-v_max
+    if speed_right>v_max:speed_right=v_max
+    if speed_left<-v_max:speed_left=-v_max
+    if speed_left>v_max:speed_left=v_max
+    #bounded speed for turn+speedDC
+    delta_speed=abs(speed_left-speed_right)
+    if speed_left+vitesse>v_max:#PB si les deux au dessus
+        speed_left=v_max
+        speed_right=v_max-delta_speed
+    elif speed_right+vitesse>v_max:
+        speed_left=v_max-delta_speed
+        speed_right=v_max
+    else:
+        speed_left=speed_left+vitesse
+        speed_right=speed_right+vitesse
+    return speed_left,speed_right
