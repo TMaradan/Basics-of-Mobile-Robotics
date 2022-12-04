@@ -32,7 +32,7 @@ def navigation()
 #        leds_top = [30,30,30]
     motor_left_target = speed_left - coef * (right_obst// 100)
     motor_right_target = speed_right - coef * (left_obst // 100)
-    global_path(position_x,position_y)
+    global_path(robot_state[0],robot_state[1])
     v = {
             "motor.left.target": [int(motor_left_target*2.3)],
             "motor.right.target": [int(motor_right_target*2.3)],
