@@ -1,0 +1,41 @@
+def navigation()
+  await node.wait_for_variables({"prox.horizontal"})
+  obst = list(node.v.prox.horizontal)
+  left_obst= (obst[0] + obst[1])//2
+  right_obst=(obst[3] + obst[4])//2
+  if state == 0: 
+    # if at least one prox sensor above treshold, go into obstacle avoidance (or condition)
+    if (obst[0] > obstThrH):
+      state = 1
+    elif (obst[1] > obstThrH):
+      state = 1
+    elif (obst[3] > obstThrH):
+      state = 1
+    elif (obst[4] > obstThrH):
+      state = 1
+      
+  elif state == 1:
+  # if all prox sensors under treshold, go back to global nav (and condition)
+    if obst[0] < obstThrL:
+      if obst[1] < obstThrL : 
+        if obst[3] < obstThrL : 
+          if obst[4] < obstThrL : 
+            state = 0
+                
+  if  state == 0 :
+    # global
+    (speed_left, speed_right)=global_nav()
+    motor_left_target = speed_left
+    motor_right_target = speed_right
+        
+  else:
+#        leds_top = [30,30,30]
+    motor_left_target = speed_left - coef * (right_obst// 100)
+    motor_right_target = speed_right - coef * (left_obst // 100)
+    global_path(position_x,position_y)
+    v = {
+            "motor.left.target": [int(motor_left_target*2.3)],
+            "motor.right.target": [int(motor_right_target*2.3)],
+    }
+    aw(node.set_variables(v))
+    await client.sleep(10*dt) # your long-running job goes here... here wait1s
