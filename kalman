@@ -1,0 +1,52 @@
+def kalman(current_state,  motor_speed):#pos_cam,
+    
+    #estimate x-y position with velocity
+    #measurements and camera postion measurement
+    f = KalmanFilter (dim_x=4, dim_z=4)
+
+    # initial position
+    f.x= np.transpose(current_state)
+    print(current_state)
+    print(f.x)
+    
+    #state transition matrix
+   
+    f.F = np.array([[1, 0, Ts, 0],
+              [0, 1, 0, Ts], 
+              [0, 0, 1, 0],
+              [0, 0, 0, 1]])
+
+    #measurement function H
+    f.H = np.array([[1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]])
+
+    #covariance matrix P
+    f.P = np.array([[qp, 0, 0, 0], 
+              [0, qp, 0, 0], 
+              [0, 0, q_nu, 0], 
+              [0, 0, 0, q_nu]])
+
+    #measurement noise R (scalar)
+    f.R = np.array([[rp, 0, 0, 0],
+                [0, rp, 0, 0],
+                [0, 0, r_nu, 0],
+                [0, 0, 0, r_nu]])
+
+    #process noise Q
+    f.Q = Q_discrete_white_noise(dim=4, dt=0.1, var=0.13)
+    
+    #if(new_image): #if image is up to date, take position from camera
+    #    print(motor_speed)
+    #    print(pos_cam)
+    #    z = np.transpose(np.array([pos_cam[0],pos_cam[1], motor_speed[0],motor_speed[1]]))
+    #else:
+    #pos=np.array([) #if image outdated, use state position instead of camera position
+    z = np.array([current_state[0], current_state[1], motor_speed[0],motor_speed[1]])
+    
+    f.predict()
+    f.update(z)
+
+    #return state and covariance matrix
+    return f.x
